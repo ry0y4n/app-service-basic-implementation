@@ -1,57 +1,89 @@
-# Project Name
+# App Services Basic Architecture
 
-(short, 1-3 sentenced, description of the project)
+This repository contains the Bicep code to deploy an Azure App Services basic architecture.
 
-## Features
+## Deploy
 
-This project framework provides the following features:
+The following are prerequisites.
 
-* Feature 1
-* Feature 2
-* ...
+## Prerequisites
 
-## Getting Started
+1. Ensure you have an [Azure Account](https://azure.microsoft.com/free/)
+1. Ensure you have the [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
+1. Ensure you have the [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
 
-### Prerequisites
+Use the following to deploy the infrastructure.
 
-(ideally very short, if any)
+### Deploy the infrastructure
 
-- OS
-- Library version
-- ...
+The following steps are required to deploy the infrastructure from the command line.
 
-### Installation
+1. In your command-line tool where you have the Azure CLI and Bicep installed, navigate to the root directory of this repository (AppServicesRI)
 
-(ideally very short)
+1. Update the infra-as-code/parameters file
 
-- npm install [package name]
-- mvn install
-- ...
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "value": ""
+    },
+    "sqlAdministratorLogin": {
+      "value": ""
+    },
+    "sqlAdministratorLoginPassword": {
+      "value": ""
+    }
+  }
+}
+```
 
-### Quickstart
-(Add steps to get up and running quickly)
+Note: Take into account that sql database enforce [password complexity](https://learn.microsoft.com/sql/relational-databases/security/password-policy?view=sql-server-ver16#password-complexity)
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+1. Run the following command to create a resource group and deploy the infrastructure. Make sure:
 
+   - The BASE_NAME contains only lowercase letters and is between 6 and 12 characters. All resources will be named given this basename.
+   - You choose a valid resource group name
 
-## Demo
+```bash
+   LOCATION=westus3
+   BASE_NAME=<base-resource-name between 3 and 6 charcters>
+   RESOURCE_GROUP=<resource-group-name>
+   az group create --location $LOCATION --resource-group $RESOURCE_GROUP
 
-A demo app is included to show how to use the project.
+   az deployment group create --template-file ./infra-as-code/bicep/main.bicep \
+     --resource-group $RESOURCE_GROUP \
+     --parameters @./infra-as-code/bicep/parameters.json \
+     --parameters baseName=$BASE_NAME
+```
 
-To run the demo, follow these steps:
+### Publish the web app
 
-(Add steps to start up the demo)
+First, we need to clone the [Simple Web App workload repository](https://github.com/Azure-Samples/app-service-sample-workload)
 
-1.
-2.
-3.
+```bash
+cd ..
+clone https://github.com/Azure-Samples/app-service-sample-workload.git
+cd app-service-sample-workload
+```
 
-## Resources
+Deploy zip file
 
-(Any additional resources or related projects)
+```bash
+APPSERVICE_NAME=app-$BASE_NAME
+az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --src-path ./website/SimpleWebApp/SimpleWebApp.zip
+```
 
-- Link to supporting information
-- Link to similar sample
-- ...
+### Validate the web app
+
+TBD
+
+## Clean Up
+
+After you are done exploring your deployed AppService refence implementation, you'll want to delete the created Azure resources to prevent undesired costs from accruing.
+
+```bash
+az group delete --name $RESOURCE_GROUP -y
+```

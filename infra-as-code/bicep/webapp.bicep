@@ -1,0 +1,161 @@
+/*
+  Deploy a web app with a managed identity, diagnostic, and a private endpoint
+*/
+
+@description('This is the base name for each Azure resource name (6-12 chars)')
+param baseName string
+
+@description('The resource group location')
+param location string = resourceGroup().location
+
+// existing resource name params 
+param logWorkspaceName string
+
+@secure()
+param sqlConnectionString string
+
+// variables
+var appName = 'app-${baseName}'
+var appServicePlanName = 'asp-${appName}${uniqueString(subscription().subscriptionId)}'
+var appServiceManagedIdentityName = 'id-${appName}'
+
+var appServicePlanStandardSku = 'Standard'
+var appServicePlanSettings = {
+  Standard: {
+    name: 'S1'
+    capacity: 1
+  }
+}
+
+
+// ---- Existing resources ----
+resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+  name: logWorkspaceName
+}
+
+// ---- Web App resources ----
+
+// Managed Identity for App Service
+resource appServiceManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: appServiceManagedIdentityName
+  location: location
+}
+
+//App service plan
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
+  name: appServicePlanName
+  location: location
+  sku: appServicePlanSettings[appServicePlanStandardSku]
+  properties: {
+    zoneRedundant: false
+  }
+  kind: 'app'
+}
+
+// Web App
+resource webApp 'Microsoft.Web/sites@2022-09-01' = {
+  name: appName
+  location: location
+  kind: 'app'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${appServiceManagedIdentity.id}': {}
+    }
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: false
+    keyVaultReferenceIdentity: appServiceManagedIdentity.id
+    hostNamesDisabled: false
+    siteConfig: {
+      vnetRouteAllEnabled: false
+      http20Enabled: true
+      publicNetworkAccess: 'Enabled'
+      alwaysOn: true
+    }
+  }
+}
+
+// App Settings
+resource appsettings 'Microsoft.Web/sites/config@2022-09-01' = {
+  name: 'appsettings'
+  parent: webApp
+  properties: {
+    WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID: appServiceManagedIdentity.id
+    adWorksConnString: sqlConnectionString
+  }
+}
+
+// App service plan diagnostic settings
+resource appServicePlanDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${appServicePlan.name}-diagnosticSettings'
+  scope: appServicePlan
+  properties: {
+    workspaceId: logWorkspace.id
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 7
+          enabled: true
+        }
+      }
+    ]
+  }
+}
+
+//Web App diagnostic settings
+resource webAppDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${webApp.name}-diagnosticSettings'
+  scope: webApp
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      {
+        category: 'AppServiceHTTPLogs'
+        categoryGroup: null
+        enabled: true
+        retentionPolicy: {
+          days: 7
+          enabled: true
+        }
+      }
+      {
+        category: 'AppServiceConsoleLogs'
+        categoryGroup: null
+        enabled: true
+        retentionPolicy: {
+          days: 7
+          enabled: true
+        }
+      }
+      {
+        category: 'AppServiceAppLogs'
+        categoryGroup: null
+        enabled: true
+        retentionPolicy: {
+          days: 7
+          enabled: true
+        }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 7
+          enabled: true
+        }
+      }
+    ]
+  }
+}
+
+@description('The name of the app service plan.')
+output appServicePlanName string = appServicePlan.name
+
+@description('The name of the web app.')
+output appName string = webApp.name
