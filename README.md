@@ -78,7 +78,12 @@ az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --src-
 
 ### Validate the web app
 
-TBD
+Obtain App Service URL and put the url to a Web Browser
+
+```bash
+APPSERVICE_URL=https://$APPSERVICE_NAME.azurewebsites.net
+echo $APPSERVICE_URL
+```
 
 ## Clean Up
 
