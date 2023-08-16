@@ -68,3 +68,6 @@ resource slqDatabase 'Microsoft.Sql/servers/databases@2021-11-01' = {
 
 @description('The connection string to the sample database.')
 output sqlConnectionString string = sqlConnectionString
+
+@description('Database Resource ID')
+output databaseResourceId string = slqDatabase.id

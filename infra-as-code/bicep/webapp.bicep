@@ -159,3 +159,11 @@ output appServicePlanName string = appServicePlan.name
 @description('The name of the web app.')
 output appName string = webApp.name
 
+@description('User identity client id.')
+output appServiceIdentity string = appServiceManagedIdentity.properties.clientId
+
+@description('User identity subscription id.')
+output appServiceIdentitySubscriptionId string = subscription().subscriptionId
+
+@description('WebApp resource id.')
+output appServiceResourceId string = webApp.id

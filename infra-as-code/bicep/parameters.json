@@ -3,13 +3,13 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "baseName": {
-      "value": "fartest"
+      "value": ""
     },
     "sqlAdministratorLogin": {
-      "value": "faradmin"
+      "value": ""
     },
     "sqlAdministratorLoginPassword": {
-      "value": "Frederic123!"
+      "value": "!"
     }
   }
 }
