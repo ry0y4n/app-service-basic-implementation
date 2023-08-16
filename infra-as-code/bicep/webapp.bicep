@@ -82,7 +82,6 @@ resource appsettings 'Microsoft.Web/sites/config@2022-09-01' = {
   name: 'appsettings'
   parent: webApp
   properties: {
-    WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID: appServiceManagedIdentity.id
     AZURE_SQL_CONNECTIONSTRING: sqlConnectionString
   }
 }
@@ -160,8 +159,3 @@ output appServicePlanName string = appServicePlan.name
 @description('The name of the web app.')
 output appName string = webApp.name
 
-@description('The client id of the managed identity.')
-output appServiceManagedIdentity string = appServiceManagedIdentity.properties.clientId
-
-@description('Subscription id')
-output subscriptionId string = subscription().subscriptionId
