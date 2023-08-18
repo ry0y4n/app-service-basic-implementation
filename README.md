@@ -78,7 +78,7 @@ az webapp deploy --resource-group $RESOURCE_GROUP --name $APPSERVICE_NAME --src-
 
 ### Validate the web app
 
-Obtain App Service URL and put the url to a Web Browser
+Retrieve the web application URL and open it in your default web browser.
 
 ```bash
 APPSERVICE_URL=https://$APPSERVICE_NAME.azurewebsites.net
