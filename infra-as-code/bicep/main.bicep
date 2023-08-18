@@ -13,7 +13,6 @@ param sqlAdministratorLogin string
 @secure()
 param sqlAdministratorLoginPassword string
 
-// ---- Availability Zones ----
 var logWorkspaceName = 'log-${baseName}'
 
 // ---- Log Analytics workspace ----
