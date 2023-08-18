@@ -87,7 +87,7 @@ echo $APPSERVICE_URL
 
 ## Clean Up
 
-After you are done exploring your deployed AppService refence implementation, you'll want to delete the created Azure resources to prevent undesired costs from accruing.
+After you have finished exploring the AppService reference implementation, it is recommended that you delete the created Azure resources to prevent undesired costs from accruing.
 
 ```bash
 az group delete --name $RESOURCE_GROUP -y
