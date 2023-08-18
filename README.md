@@ -87,10 +87,9 @@ echo $APPSERVICE_URL
 
 ## Optional Step: Service Connector
 
-This implementation is using classic connection string to access the database. The app service has a variable called "AZURE_SQL_CONNECTIONSTRING" which is used by the application.
-It is possible to use [Service Connector](https://learn.microsoft.com/azure/service-connector/overview). Service Connector helps you connect Azure compute services to other backing services. This service configures the network settings and connection information (for example, generating environment variables) between compute services and target backing services in management plane
+This implementation is using a classic connection string to access the database, the connection string is stored in an App Service setting called "AZURE_SQL_CONNECTIONSTRING". You can use [Service Connector](https://learn.microsoft.com/azure/service-connector/overview) to configure the connection. Service Connector makes it easy and simple to establish and maintain connections between services. It reduces manual configuration and maintenance difficulties. You can use Service Connector either from Azure Portal, Azure CLI or even from Visual Studio to create connections.
 
-You must open [Azure Cloud Shell on bash mode](https://learn.microsoft.com/azure/cloud-shell/quickstart), the command needs to connect the database and your computer is not allowed, only azure services are allowed.
+You must open [Azure Cloud Shell on bash mode](https://learn.microsoft.com/azure/cloud-shell/quickstart) to execute these CLI commands. The commands need to connect the database and only azure services are allowed in the current configuration.
 
 ```bash
    # Set variables on Azure Cloud Shell
@@ -103,12 +102,13 @@ You must open [Azure Cloud Shell on bash mode](https://learn.microsoft.com/azure
    USER_IDENTITY_WEBAPP_CLIENTID=$(az deployment group show -g $RESOURCE_GROUP -n webappDeploy --query properties.outputs.appServiceIdentity.value -o tsv)
    USER_IDENTITY_WEBAPP_SUBSCRIPTION=$(az deployment group show -g $RESOURCE_GROUP -n webappDeploy --query properties.outputs.appServiceIdentitySubscriptionId.value -o tsv)
    
-   # Delete current app service conection string, you could check on azure portal that the key was deleted
+   # Delete current app service conection string, you could verify that the key was deleted from the Azure portal
    az webapp config appsettings delete --name $APPSERVICE_NAME --resource-group $RESOURCE_GROUP --setting-names AZURE_SQL_CONNECTIONSTRING
 
-   # Install service connector 
+   # Install the service connector CLI extension
    az extension add --name serviceconnector-passwordless --upgrade
 
+   # Invoke the service connection command
    az webapp connection create sql --connection sql_adventureconn --source-id $RESOURCEID_WEBAPP --target-id $RESOURCEID_DATABASE --client-type dotnet --user-identity client-id=$USER_IDENTITY_WEBAPP_CLIENTID subs-id=$USER_IDENTITY_WEBAPP_SUBSCRIPTION
    # The AZURE_SQL_CONNECTIONSTRING was created again but the connection string now includes "Authentication=ActiveDirectoryManagedIdentity"
    
@@ -116,7 +116,7 @@ You must open [Azure Cloud Shell on bash mode](https://learn.microsoft.com/azure
 
 ## Clean Up
 
-After you have finished exploring the AppService reference implementation, it is recommended that you delete the created Azure resources to prevent undesired costs from accruing.
+After you have finished exploring the AppService reference implementation, it is recommended that you delete Azure resources to prevent undesired costs from accruing.
 
 ```bash
 az group delete --name $RESOURCE_GROUP -y
