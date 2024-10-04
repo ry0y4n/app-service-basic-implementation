@@ -96,10 +96,6 @@ resource appServicePlanDiagSettings 'Microsoft.Insights/diagnosticSettings@2021-
       {
         category: 'AllMetrics'
         enabled: true
-        retentionPolicy: {
-          days: 7
-          enabled: true
-        }
       }
     ]
   }
